@@ -52,6 +52,7 @@ class KeywordProcessor(object):
         self.keyword_trie_dict = dict()
         self.case_sensitive = case_sensitive
         self._terms_in_trie = 0
+        self.multiple_keywords={}
 
     def __len__(self):
         """Number of terms present in the keyword_trie_dict
@@ -149,7 +150,13 @@ class KeywordProcessor(object):
             if self._keyword not in current_dict:
                 status = True
                 self._terms_in_trie += 1
-            current_dict[self._keyword] = clean_name
+            if self._keyword in current_dict:
+                if current_dict[self._keyword] in self.multiple_keywords:
+                    self.multiple_keywords[current_dict[self._keyword]]+=[clean_name]
+                else:
+                    self.multiple_keywords[current_dict[self._keyword]]=[clean_name]
+            else:    
+                current_dict[self._keyword] = clean_name
         return status
 
     def __delitem__(self, keyword):
@@ -548,6 +555,8 @@ class KeywordProcessor(object):
             if idx + 1 >= sentence_len:
                 if self._keyword in current_dict:
                     sequence_found = current_dict[self._keyword]
+                    if sequence_found in self.multiple_keywords:
+                        sequence_found=self.multiple_keywords[sequence_found]+[sequence_found]
                     keywords_extracted.append((sequence_found, sequence_start_pos, sentence_len))
             idx += 1
             if reset_current_dict:
@@ -679,3 +688,5 @@ class KeywordProcessor(object):
                     new_sentence.append(current_word)
             idx += 1
         return "".join(new_sentence)
+
+
